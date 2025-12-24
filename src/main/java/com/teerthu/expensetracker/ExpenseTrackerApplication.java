@@ -17,6 +17,7 @@ public class ExpenseTrackerApplication {
 	public PasswordEncoder passwordEncoder() {
 	    return new BCryptPasswordEncoder();
 	}
+	
 
 
 }
