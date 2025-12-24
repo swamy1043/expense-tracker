@@ -1,13 +1,16 @@
 package com.teerthu.expensetracker.controller;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.CrossOrigin;
-
 
 import com.teerthu.expensetracker.model.User;
 import com.teerthu.expensetracker.repository.UserRepository;
@@ -42,18 +45,25 @@ public class AuthController {
 
     // LOGIN
     @PostMapping("/login")
-    public String login(@RequestBody User user) {
+    public <LoginRequest> ResponseEntity<?> login(@RequestBody LoginRequest request) {
 
-        User existingUser = userRepository.findByUsername(user.getUsername());
+        Optional<User> optionalUser = Optional.ofNullable(userRepository.findByUsername(((User) request).getUsername()));
 
-        if (existingUser == null) {
-            return "User not found!";
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid username or password");
         }
 
-        if (!passwordEncoder.matches(user.getPassword(), existingUser.getPassword())) {
-            return "Wrong password!";
+        User user = optionalUser.get();
+
+        if (!passwordEncoder.matches(((User) request).getPassword(), user.getPassword())) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid username or password");
         }
 
-        return "Login success!";
+        return ResponseEntity.ok("Login successful");
     }
+
 }
